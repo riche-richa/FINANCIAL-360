@@ -343,7 +343,114 @@ with maximum_transaction as(
        on a.account_id = t.account_id;
        
           
-      
+ -- =========================================
+ -- QUERY 13: FIND CUSTOMERS WITH MULTIPLE BANK ACCOUNTS
+ -- =========================================
+    
+    select customer_id, count(account_no) as total_accounts
+    from accounts
+    group by customer_id
+    having count(account_no)> 1;
+    
+ -- ==============================================
+ -- QUERY 14: SHOW THE CUSTOMER NAMES WITH MORE THAN 1 BANK ACCOUNT
+ -- ALONG WITH BANK NAMES
+ -- ================================================
+    
+select c.customer_id, c.name, group_concat(distinct b.bank_name separator',') as banks_used,
+count(distinct a.bank_id) as total_banks
+from customers c
+join accounts a 
+on c.customer_id = a.customer_id
+join banks b
+on b.bank_id = a.bank_id
+group by c.customer_id, c.name
+having count(distinct a.bank_id)>1;
+
+-- =======================================================
+-- QUERY 15: FOR EVERY BANK, FIND THE ACCOUNT WITH HIGHEST BALANCE
+-- FLOW - CTE(WITH) CREATES RANKED DATASET
+-- ROW_NUMBER() NUMBERS ACCOUNTS WITHIN EACH BANK
+-- PARTITION BY BANK_ID RANKING RESTARTS FOR EVERY BANK
+-- ORDER BY BALANCE DESC -> HIGHEST BALANCE GETS #1
+-- OUTER SELECT - DISPLAYS THE REQUIRED INFO
+-- WHERE BALANCE_RANK = 1 -> KEEPS ONLY HIGHEST VALUE ACCOUNT PER BANK
+-- =======================================================
+ with  account_balance_perbank as(
+ 
+ select b.bank_name, c.name, a.account_no, a.balance,
+ row_number() over(
+ partition by a.bank_id
+ order by a.balance desc
+ ) as balance_rank
+ 
+ from accounts a 
+ join customers c 
+ on a.customer_id = c.customer_id
+ join banks b
+ on b.bank_id = a.bank_id
+ )
+ 
+ select bank_name, name, account_no, balance 
+ from account_balance_perbank
+ where balance_rank = 1;
+ 
+ 
+ -- =========================================
+ -- QUERY 16: BANKWISE ACCOUNT TYPE SUMMARY WITH
+ -- SUBTOTAL AND GRANDTOTAL
+ -- =========================================
+ 
+ select 
+   case 
+     when grouping(b.bank_name)= 1 then 'grand total'
+     else b.bank_name end as bank_name,
+     
+     case
+       when grouping(a.type)= 1
+          and grouping(b.bank_name) = 0
+       then 'bank total'
+       when grouping(a.type) = 1
+         and grouping(b.bank_name) = 1
+         then 'all accounts'
+        else  a.type end as account_type,
+        
+        count(distinct a.customer_id) as total_customers,
+        count(a.account_id) as total_accounts
+       
+ from accounts a 
+ join banks b
+ on a.bank_id = b.bank_id
+ group by b.bank_name, a.type with rollup;
+ 
+ -- ========================================
+ -- QUERY 17: CUSTOMER SEGMENTATION BY ACCOUNT ACTIVITY
+ -- ========================================
+
+with customer_accounts as( 
+ select customer_id, count(account_id) as total_accounts
+ from accounts
+ group by customer_id
+ ),
+ 
+ segmented_customers as(
+ select customer_id, total_accounts,
+ NTILE(4) over (
+ order by total_accounts desc
+ ) as segment
+ 
+ from customer_accounts
+ )
+ select
+ customer_id, total_accounts,
+ case
+    when segment = 1 then 'top 25%'
+    when segment = 2 then '25 -50 %'
+    when segment = 3 then '50- 75%'
+    else 'bottom 25%'
+    end as account_segment
+    from segmented_customers;
+ 
       
                
      
