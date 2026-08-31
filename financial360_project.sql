@@ -450,7 +450,96 @@ with customer_accounts as(
     else 'bottom 25%'
     end as account_segment
     from segmented_customers;
+
+
+-- ===========================================
+ -- QUERY 18 : PERCENTAGE OF BANK'S TOTAL TRANSACTION WAS CONTRIBUTED
+ -- BY THE GIVEN CUSTOMER
+ -- ===========================================
  
+ with customer_transactions as(
+  select a.customer_id, sum(t.amount) as customer_total
+  from accounts a 
+  join transactions t
+  on a.account_id = t.account_id
+  group by a.customer_id
+  )
+  
+  select customer_id, customer_total,
+  round(
+  customer_total/sum(customer_total) over() * 100,2
+  ) as contribution_percentage
+  from customer_transactions
+  order by contribution_percentage desc;
+ 
+ -- ===============================================
+ -- QUERY 19: FALLBACK CUSTOMER LOOKUP 
+ -- ===============================================
+ 
+ select customer_id, pan_code, aadhaar_code
+ from customers
+ limit 10;
+ 
+ DROP PROCEDURE IF EXISTS find_customer;
+
+DELIMITER //
+
+CREATE PROCEDURE find_customer(
+    IN search_pan VARCHAR(20),
+    IN search_aadhaar VARCHAR(20)
+)
+BEGIN
+
+    SELECT
+        customer_id,
+        pan_code,
+        aadhaar_code,
+        CASE
+            WHEN pan_code = search_pan THEN 'PAN'
+            WHEN aadhaar_code = search_aadhaar THEN 'AADHAAR'
+        END AS matched_by
+    FROM customers
+    WHERE pan_code = search_pan
+       OR aadhaar_code = search_aadhaar
+    ORDER BY
+        CASE
+            WHEN pan_code = search_pan THEN 1
+            WHEN aadhaar_code = search_aadhaar THEN 2
+        END
+    LIMIT 1;
+
+END //
+
+DELIMITER ;
+   
+  
+   call find_customer(null,'A19494');
+   
+   -- =======================================================
+   -- QUERY 20 : DUPLICATE/SUSPICIOUS TRANSACTIONS :
+   -- FIND CUSTOMERS WHO MADE THE SAME TRANSACTION ACCOUNT MULTIPLE TIMES
+   -- USE PYTHON TO ANALYSE THE RESULTS
+   -- ======================================================
+   
+   with transaction_check as
+   (
+   select a.customer_id, t.txn_id, t.date, t.amount,
+   count(*) over (
+   partition by a.customer_id,t.amount
+   ) as same_amount_count
+   
+   from transactions t
+   join accounts a 
+   on a.account_id = t.account_id
+   )
+   
+   select customer_id, txn_id, date, amount, same_amount_count
+   
+   from transaction_check
+   where same_amount_count > 1
+   
+   order by customer_id, amount, date;
+   
       
                
      
