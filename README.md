@@ -193,7 +193,7 @@ The SQL and Python analysis are presented through a **7-page interactive Power B
 
 ### Data Model & Relationships
 
-![Power BI Data Model](Screenshot_Data_Model.png)
+![Power BI Data Model](Data_Model.png)
 
 ---
 
