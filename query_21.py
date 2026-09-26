@@ -7,8 +7,8 @@ import pandas as pd
 
 conn = mysql.connector.connect(
     host ="localhost",
-    user ="root",
-    password ="rich@9929",
+    user ="****",
+    password ="***********",
     database ="finance_db"
     )   
 
