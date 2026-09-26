@@ -161,6 +161,42 @@ The SQL and Python analysis are presented through a **7-page interactive Power B
 - DAX
 - GitHub
 
+  ## Dashboard Preview
+
+### 1. Financial 360 Overview
+
+![Financial 360 Overview](Financial_Overview.png)
+
+### 2. Risk & Credit Analysis
+
+![Risk & Credit Analysis](Risk_credit.png)
+
+### 3. Customer & Account Analysis
+
+![Customer & Account Analysis](Customer_Account.png)
+
+### 4. Transaction Analysis
+
+![Transaction Analysis](Transaction_Analysis.png)
+
+### 5. Loan Analysis
+
+![Loan Analysis](Loan_Analysis.png)
+
+### 6. Defaulter & Customer Risk
+
+![Defaulter & Customer Risk](Defaulter_Risk.png)
+
+### 7. Customer 360
+
+![Customer 360](Customer%20360.png)
+
+### Data Model & Relationships
+
+![Power BI Data Model](Screenshot_Data_Model.png)
+
+---
+
 ---
 
 ## Project Workflow
